@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Geometric Shapes Game</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #1a1a1a;
+        font-family: Arial, sans-serif;
+      }
+      #gameContainer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        width: 100%;
+        max-width: 920px;
+        padding: 8px;
+      }
+      @media (max-width: 600px) {
+        #gameContainer {
+          max-width: 420px;
+          padding: 6px;
+        }
+      }
+      canvas {
+        border: 2px solid #fff;
+        background-color: #0a0a0a;
+        max-width: 100%;
+        height: auto;
+      }
+      #info {
+        color: #fff;
+        text-align: center;
+        font-size: 14px;
+      }
+      #info h1 {
+        margin: 0 0 10px 0;
+        font-size: 24px;
+      }
+      #info p {
+        margin: 5px 0;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      /* Mobile tweaks */
+      @media (max-width: 600px) {
+        #info h1 {
+          font-size: 20px;
+        }
+        #info p {
+          font-size: 12px;
+        }
+        #shape-select-btn {
+          padding: 6px 8px;
+        }
+        #shape-options {
+          min-width: 150px;
+        }
+        #controls {
+          gap: 16px;
+          flex-wrap: wrap;
+        }
+        #controls span {
+          font-size: 14px;
+        }
+        button {
+          padding: 8px 14px;
+          font-size: 14px;
+        }
+        #stats-overlay {
+          font-size: 13px !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="gameContainer">
+      <div
+        id="shape-input-container"
+        style="
+          position: relative;
+          margin-top: 30px;
+          left: 0;
+          right: 0;
+          z-index: 1000;
+          background: rgba(30, 30, 30, 0.95);
+          padding: 10px 16px;
+          border-radius: 8px;
+          box-shadow: 0 2px 8px #0008;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          width: fit-content;
+        "
+      >
+        <span style="color: #fff; font-size: 15px">Create shape:</span>
+        <!-- Custom dropdown -->
+        <div id="shape-dropdown" style="position: relative">
+          <button
+            id="shape-select-btn"
+            aria-haspopup="listbox"
+            aria-expanded="false"
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              padding: 6px 10px;
+              border-radius: 4px;
+              border: 1px solid #888;
+              background: #222;
+              color: #fff;
+              cursor: pointer;
+            "
+          >
+            <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true">
+              <circle cx="10" cy="10" r="8" fill="#ff3b30" />
+            </svg>
+            <span id="shape-select-label">Circle</span>
+            <span style="margin-left: 6px; opacity: 0.7">▾</span>
+          </button>
+          <ul
+            id="shape-options"
+            role="listbox"
+            tabindex="-1"
+            style="
+              display: none;
+              position: absolute;
+              top: 36px;
+              left: 0;
+              background: #1f1f1f;
+              border: 1px solid #555;
+              border-radius: 6px;
+              padding: 6px 0;
+              margin: 0;
+              list-style: none;
+              min-width: 170px;
+              box-shadow: 0 6px 16px #000a;
+            "
+          >
+            <li
+              data-value="random"
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 10px;
+                color: #fff;
+                cursor: pointer;
+              "
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 20 20"
+                aria-hidden="true"
+              >
+                <rect
+                  x="9"
+                  y="3"
+                  width="8"
+                  height="8"
+                  rx="2"
+                  ry="2"
+                  fill="#f5f5f5"
+                  stroke="#9e9e9e"
+                  stroke-width="0.6"
+                />
+                <circle cx="11" cy="5" r="0.9" fill="#333" />
+                <circle cx="13" cy="7" r="0.9" fill="#333" />
+                <circle cx="15" cy="9" r="0.9" fill="#333" />
+                <rect
+                  x="3"
+                  y="9"
+                  width="8"
+                  height="8"
+                  rx="2"
+                  ry="2"
+                  fill="#f5f5f5"
+                  stroke="#9e9e9e"
+                  stroke-width="0.6"
+                />
+                <circle cx="5" cy="11" r="0.9" fill="#333" />
+                <circle cx="7" cy="13" r="0.9" fill="#333" />
+                <circle cx="9" cy="15" r="0.9" fill="#333" />
+              </svg>
+              <span>Random</span>
+            </li>
+            <li
+              data-value="circle"
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 10px;
+                color: #fff;
+                cursor: pointer;
+              "
+            >
+              <svg width="18" height="18" viewBox="0 0 20 20">
+                <circle cx="10" cy="10" r="8" fill="#ff3b30" />
+              </svg>
+              <span>Circle</span>
+            </li>
+            <li
+              data-value="rectangle"
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 10px;
+                color: #fff;
+                cursor: pointer;
+              "
+            >
+              <svg width="18" height="18" viewBox="0 0 20 20">
+                <rect x="2" y="6" width="20" height="10" fill="#e91e63" />
+              </svg>
+              <span>Rectangle</span>
+            </li>
+            <li
+              data-value="square"
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 10px;
+                color: #fff;
+                cursor: pointer;
+              "
+            >
+              <svg width="18" height="18" viewBox="0 0 20 20">
+                <rect x="3" y="3" width="14" height="14" fill="#32d74b" />
+              </svg>
+              <span>Square</span>
+            </li>
+            <li
+              data-value="triangle"
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 10px;
+                color: #fff;
+                cursor: pointer;
+              "
+            >
+              <svg width="18" height="18" viewBox="0 0 20 20">
+                <polygon points="10,3 18,17 2,17" fill="#0a84ff" />
+              </svg>
+              <span>Triangle</span>
+            </li>
+            <li
+              data-value="pentagon"
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 10px;
+                color: #fff;
+                cursor: pointer;
+              "
+            >
+              <svg width="18" height="18" viewBox="0 0 20 20">
+                <polygon points="10,2 18,8 15,18 5,18 2,8" fill="#ffcc00" />
+              </svg>
+              <span>Pentagon</span>
+            </li>
+            <li
+              data-value="hexagon"
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 10px;
+                color: #fff;
+                cursor: pointer;
+              "
+            >
+              <svg width="18" height="18" viewBox="0 0 20 20">
+                <polygon
+                  points="6,3 14,3 18,10 14,17 6,17 2,10"
+                  fill="#af52de"
+                />
+              </svg>
+              <span>Hexagon</span>
+            </li>
+            <li
+              data-value="ellipse"
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 10px;
+                color: #fff;
+                cursor: pointer;
+              "
+            >
+              <svg width="18" height="18" viewBox="0 0 20 20">
+                <ellipse cx="10" cy="10" rx="8" ry="5" fill="#5ac8fa" />
+              </svg>
+              <span>Ellipse</span>
+            </li>
+            <li
+              data-value="star"
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 10px;
+                color: #fff;
+                cursor: pointer;
+              "
+            >
+              <svg width="18" height="18" viewBox="0 0 20 20">
+                <polygon
+                  points="10,2 12.9,7.5 19,8 14,12 15.5,18 10,14.8 4.5,18 6,12 1,8 7.1,7.5"
+                  fill="#ff9500"
+                />
+              </svg>
+              <span>Star</span>
+            </li>
+            <li
+              data-value="irregular"
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 10px;
+                color: #fff;
+                cursor: pointer;
+              "
+            >
+              <svg width="18" height="18" viewBox="0 0 20 20">
+                <path
+                  d="M10 3 C12 3, 15 4, 16 6 C17 8, 16 12, 14 13 C12 14, 9 17, 7 16 C5 15, 3 12, 4 9 C5 6, 8 3, 10 3 Z"
+                  fill="#ff5e3a"
+                />
+              </svg>
+              <span>Irregular</span>
+            </li>
+          </ul>
+        </div>
+        <button
+          id="create-shape-btn"
+          disabled
+          style="
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: 1px solid #4caf50;
+            background: #2a4;
+            color: #fff;
+            cursor: not-allowed;
+            opacity: 0.6;
+          "
+        >
+          Create
+        </button>
+        <button
+          id="auto-shape-btn"
+          disabled
+          aria-pressed="false"
+          style="
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: 1px solid #2196f3;
+            background: #1565c0;
+            color: #fff;
+            cursor: not-allowed;
+            opacity: 0.6;
+          "
+        >
+          Auto (1/s)
+        </button>
+      </div>
+      <div id="pixi-container" style="position: relative">
+        <div
+          class="stats-inputs-container"
+          style="
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+            align-items: center;
+            justify-content: space-between;
+          "
+        >
+          <div style="display: flex; align-items: center; gap: 6px">
+            <label for="shape-count-input" style="color: #fff"
+              >Number of current shapes:</label
+            >
+            <input
+              id="shape-count-input"
+              type="text"
+              disabled
+              value="0"
+              style="
+                max-width: 70px;
+                color: #fff;
+                background-color: #5c5c5c;
+                text-align: center;
+              "
+            />
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px">
+            <label for="surface-area-input" style="color: #fff"
+              >Surface area occupied by shapes:</label
+            >
+            <input
+              id="surface-area-input"
+              type="text"
+              disabled
+              value="0 px²"
+              style="
+                max-width: 70px;
+                color: #fff;
+                background-color: #5c5c5c;
+                text-align: center;
+              "
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        id="controls"
+        style="
+          display: flex;
+          gap: 32px;
+          margin-top: 16px;
+          color: #fff;
+          font-family: Arial, sans-serif;
+        "
+      >
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span>Number of shapes / action</span>
+          <button id="rate-minus" aria-label="decrease rate">-</button>
+          <span id="rate-value">1</span>
+          <button id="rate-plus" aria-label="increase rate">+</button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span>Gravity</span>
+          <button id="gravity-minus" aria-label="decrease gravity">-</button>
+          <span id="gravity-value">1</span>
+          <button id="gravity-plus" aria-label="increase gravity">+</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
