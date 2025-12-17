@@ -56,9 +56,17 @@
         border: none;
         border-radius: 4px;
         cursor: pointer;
+        transition: background 0.15s, box-shadow 0.12s, transform 0.08s;
       }
       button:hover {
         background-color: #45a049;
+        box-shadow: 0 0 0 3px #4caf5040;
+        transform: translateY(-1px) scale(1.03);
+      }
+      button:active {
+        background-color: #388e3c;
+        box-shadow: 0 0 0 2px #388e3c80;
+        transform: scale(0.97);
       }
       /* Mobile tweaks */
       @media (max-width: 600px) {
