@@ -1,4 +1,5 @@
 import { Game } from "./Game";
+import { Game3D } from "./Game3D";
 
 // Extend Window interface for type safety
 declare global {
@@ -11,13 +12,91 @@ declare global {
  * Application entry point
  */
 async function main(): Promise<void> {
-  const game = new Game();
+  let game!: Game | Game3D;
+  let mode: "2d" | "3d" = "2d";
+
+  const initGame = async () => {
+    game = mode === "2d" ? new Game() : new Game3D();
+    await (game as any).initialize("pixi-container");
+  };
 
   try {
-    await game.initialize("pixi-container");
+    await initGame();
 
     // Expose clearCanvas to global scope for HTML button
     window.clearShapes = () => game.clearCanvas();
+
+    // Mode toggle wiring
+    const modeBtn = document.getElementById(
+      "mode-toggle-btn"
+    ) as HTMLButtonElement | null;
+    const setModeBtnState = () => {
+      if (!modeBtn) return;
+      const to3D = mode === "2d";
+      modeBtn.textContent = to3D ? "Switch to 3D" : "Switch to 2D";
+      modeBtn.setAttribute("aria-pressed", to3D ? "false" : "true");
+    };
+    setModeBtnState();
+
+    const stopAutoIfAny = () => {
+      try {
+        const anyWin = window as any;
+        if (anyWin.__autoIntervalId) {
+          clearInterval(anyWin.__autoIntervalId);
+          anyWin.__autoIntervalId = undefined;
+        }
+      } catch {}
+    };
+
+    const destroyCurrent = () => {
+      (game as any)?.destroy?.();
+    };
+
+    const toggleMode = async () => {
+      stopAutoIfAny();
+      destroyCurrent();
+      const container = document.getElementById("pixi-container");
+      if (container) {
+        // ensure stats inputs exist after canvas swap
+        const hasStats = container.querySelector(".stats-inputs-container");
+        if (!hasStats) {
+          container.innerHTML = `
+          <div class="stats-inputs-container" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:6px">
+              <label for="shape-count-input" style="color:#fff">Number of current shapes:</label>
+              <input id="shape-count-input" type="text" disabled value="0" style="max-width:70px;color:#fff;background-color:#5c5c5c;text-align:center;" />
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <label for="surface-area-input" style="color:#fff">Surface area occupied by shapes:</label>
+              <input id="surface-area-input" type="text" disabled value="0 px²" style="max-width:70px;color:#fff;background-color:#5c5c5c;text-align:center;" />
+            </div>
+          </div>`;
+        }
+      }
+      mode = mode === "2d" ? "3d" : "2d";
+      setModeBtnState();
+      await initGame();
+
+      // Re-sync UI numeric labels
+      const rateValueEl = document.getElementById("rate-value");
+      const gravityValueEl = document.getElementById("gravity-value");
+      if (rateValueEl)
+        rateValueEl.textContent = String(game.getShapesPerAction());
+      if (gravityValueEl)
+        gravityValueEl.textContent = String(game.getGravity());
+
+      // Reset controls to disabled until started in new mode if applicable
+      const enableAllControls = () => setControlsEnabled(true);
+      if ((game as any).isRunning && (game as any).isRunning()) {
+        setControlsEnabled(true);
+      } else {
+        setControlsEnabled(false);
+        window.addEventListener("game-started", enableAllControls, {
+          once: true,
+        });
+      }
+    };
+    modeBtn?.addEventListener("click", toggleMode);
 
     // Dropdown + Create/Auto buttons wiring
     const dropdown = document.getElementById("shape-dropdown");

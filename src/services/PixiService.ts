@@ -431,4 +431,43 @@ export class PixiService {
     Matter.World.add(this.matterWorld, [left, right, top, bottom]);
     this.boundaries = { left, right, top, bottom };
   }
+
+  destroy(): void {
+    const canvas = this.getCanvas();
+    if (canvas && this.boundCanvasClick) {
+      canvas.removeEventListener("click", this.boundCanvasClick);
+      this.boundCanvasClick = undefined;
+    }
+    if (this.boundKeydown) {
+      window.removeEventListener("keydown", this.boundKeydown);
+      this.boundKeydown = undefined;
+    }
+    this.clearShapes();
+    if (this.matterWorld) {
+      const bodies = Object.values(this.boundaries).filter(Boolean) as Matter.Body[];
+      if (bodies.length) Matter.World.remove(this.matterWorld, bodies);
+      this.boundaries = {};
+    }
+    if (this.app) {
+      if (this.startText) {
+        this.app.stage.removeChild(this.startText);
+        this.startText.destroy();
+        this.startText = null;
+      }
+      if (this.instructionsText) {
+        this.app.stage.removeChild(this.instructionsText);
+        this.instructionsText.destroy();
+        this.instructionsText = null;
+      }
+      try { this.app.ticker.stop(); } catch {}
+      const canvasEl = this.app.canvas as HTMLCanvasElement;
+      try { (this.app as any).destroy?.(true); } catch {}
+      canvasEl?.parentElement?.removeChild(canvasEl);
+    }
+    this.app = null;
+    this.shapeContainer = null;
+    this.matterEngine = null;
+    this.matterWorld = null;
+    this.animationLoopStarted = false;
+  }
 }

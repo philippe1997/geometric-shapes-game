@@ -101,4 +101,8 @@ export class Game {
   isRunning(): boolean {
     return this.gameStateManager.isGameRunning();
   }
+
+  destroy(): void {
+    this.pixiService.destroy();
+  }
 }
